@@ -1,0 +1,84 @@
+Color  ->  Grayscale  ->  Otsu
+
+
+Modelo de color para 
+    
+    SRGB
+       g = 0.2126r  +  0.7152g  +  0.0722b 
+       Los pesos representan la importancia de los colores para los ojos humanos. El ojo humano detecta más colores verdes, y menos colores azules
+       
+       
+    
+    COLOR    ->    GRAYSCALE
+    
+    
+       
+    Algoritmo en python para pasar una imagen de color a escala de grises (Se utiliza mucha memoria con esta forma, es mejor crear un sólo canal para la imagen en escala de grises):
+       
+       
+           #Image previusly loaded
+           #pic_array[H][W]
+           
+           pic_res = pic_array.copy()
+           H = pic_array.shape[0]  #heigth
+           W = pic_array.shape[1]  #width
+           #shape[2] numberOfChannels
+           
+           for i in range(0, H):
+               for j in range(0, W):
+                   g =  int( 0.2126 * float( pic_array[i,j,0] )) #redChannel 0
+                   g += int( 0.7152 * float( pic_array[i,j,1] )) #greenChannel 1
+                   g += int( 0.0722 * float( pic_array[i,j,2] )) #blueChannel 2
+                   
+                   pic_res[i,j,:3] = g
+                   
+           
+           
+           
+    GRAYSCALE    ->    OTSU
+    
+    
+    
+    
+    OTSU: método para convertir una imagen de escala de grises a una binaria, si y sólo sí el histograma tiene dos jorobas de camello (dos campanas de Gauss)
+    
+    Convierte el histograma de frecuencias a un histograma de probabilidades
+            y -> probabilidad de que un pixel de una escala de grises esté en la imagen.
+            
+    Es un método exhaustivo de cálculo de T (umbral). Se calcula la varianza para encontrar el pixel en dónde tiene un valor máximo, dicho pixel es el Umbtral T.
+    El valor máximo se haya en donde esten más separados los miu y mientras más área ocupen los W
+     (CHECAR APUNTES PARA MAYOR ENTENDIMIENTO)
+     
+     Después de encontrar T, se umbraliza la imagen.
+      ValorPixel <= T    =>  0
+      ValorPixel > T     => 255
+      
+      
+      
+      
+      
+      
+      
+ Optimizar Thresholding  (fail)
+ 
+ //Vectorizar la matriz de
+ 
+     pic2 =  np.reshape(picture, height*width*channels)
+     
+     for i in range(0,height*width*c,c):
+         if pic2[i] < T:
+             pic2[i] = 0
+             pic2[i+1] = 0
+             pic2[i+2] = 0
+         else:
+             pic2[i] = 255
+             pic2[i+1] = 255
+             pic2[i+2] = 255
+     
+     pic2 = np.reshape(picture, (height, width, c))
+     
+     
+     
+     
+     
+     
