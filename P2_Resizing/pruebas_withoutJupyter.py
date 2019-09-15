@@ -35,6 +35,7 @@ def resize(image_array, new_height, new_width):
 	height = image_array.shape[0]
 	width = image_array.shape[1]
 	channels = image_array.shape[2]
+	print(image_array.shape)
 	########################################
 
 	# Create a copy of the image
@@ -119,21 +120,18 @@ def resize(image_array, new_height, new_width):
 	return resized_image2
 
 
-
-
-
 if __name__ == '__main__':
 	
-	image_name = "./ampli.jpg"
+	image_name = "./a.jpg"
 	image = Image.open(image_name)
-	image_array = np.asarray(image)
-
+	image_arr = np.asarray(image)
+	image_array = image_arr.copy()
 
 	start_time = time()
 
 	new_height = int(input("New height: "))
 	new_width = int(input("New width: "))
-	
+
 	resized_image = resize(image_array, new_height, new_width)
 
 	elapsed_time = time() - start_time
