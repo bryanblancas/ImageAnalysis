@@ -157,12 +157,12 @@ if __name__ == '__main__':
 			[-1.0,-1.0,-1.0]
 			])
 
-	convolution_image =  convolution(image2_binary, mask, [1,1])
+	conv_binary_image =  convolution(image2_binary, mask, [1,1])
 
 	f, axarr = plt.subplots(2,3)
 	axarr[0,0].imshow(image1_binary, cmap = 'gray')
 	axarr[0,1].imshow(image2_binary, cmap = 'gray')
-	axarr[0,2].imshow(convolution_image, cmap = 'gray')
+	axarr[0,2].imshow(conv_binary_image, cmap = 'gray')
 	axarr[1,0].imshow(union_images, cmap = 'gray')
 	axarr[1,1].imshow(intersection_images, cmap = 'gray')
 	axarr[1,2].imshow(complement_image, cmap = 'gray')
