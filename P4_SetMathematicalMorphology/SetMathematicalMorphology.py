@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import random
 from PIL import Image
 from time import time
 import sys
@@ -169,6 +170,21 @@ def erode(bimage, B):
 	return rtn_image
 
 
+def putSaltNoise(bimage, percent):
+	height = bimage.shape[0]
+	width = bimage.shape[1]
+
+	p = int((height*width*percent)/100)
+
+	rtn = bimage.copy()
+	for i in range(p):
+		x = random.randint(0, height-1)
+		y = random.randint(0, width-1)
+		rtn[x, y] = int(255)
+	return rtn
+
+
+
 
 if __name__ == '__main__':
 	#-------------READING AND PREPARING IMAGES-------------#
@@ -189,23 +205,28 @@ if __name__ == '__main__':
 
 	bimage1 = thresholding(bimage1, 125)
 	bimage2 = thresholding(bimage2, 125)
+
+	bimage1 = putSaltNoise(bimage1, 10)
 	#-------------END OF READING AND PREPARING IMAGES-------------#
 
 
 	#UNION
+	print("Calculating union...")
 	bunion = union(bimage1, bimage2)
 
 
 	#INTERSECTION
+	print("Calculating intersection...")
 	bintersection = intersection(bimage1, bimage2)
 
 
 	#COMPLEMENT
+	print("Calculating complement...")
 	bcomplement = complement(bimage2)
 
 
 	#TRASLATION  (A)_b = {x | x = a+b}
-
+	print("Calculating traslation...")
 
 		# test_image = np.array([
 		# 		[255,  0,  0,  0,  0],
@@ -238,7 +259,7 @@ if __name__ == '__main__':
 
 
 	#REFLECTION A' = {-x | x in A}
-
+	print("Calculating reflection...")
 
 		# test_image = np.array([
 		# 		[0,0,0],
@@ -266,7 +287,7 @@ if __name__ == '__main__':
 
 
 	#DILATE A(+)B = { x | (B')_x intersection A != 0}
-
+	print("Calculating dilate...")
 
 		# test_image = np.array([
 		# 		[0  ,  0,  0,  0,  0],
@@ -325,7 +346,7 @@ if __name__ == '__main__':
 
 
 	#ERODE A(-)B = {x | (B)_x subset A}
-
+	print("Calculating erode...")
 
 		# test_image = np.array([
 		# 		[0  ,  0,  0,  0,  0],
@@ -365,6 +386,35 @@ if __name__ == '__main__':
 
 
 
+	# OPENING 
+	print("Calculating opening...")
+
+		# test_image = np.array([
+		# 	[0,0,0,0,0,0,0,0,0],
+		# 	[0,255,255,255,255,255,255,255,0],
+		# 	[0,255,255,255,0,255,255,255,0],
+		# 	[0,255,255,255,0,255,255,255,0],
+		# 	[0,0,0,0,0,255,255,255,0],
+		# 	[0,0,0,0,0,0,0,0,0],
+		# 	[0,255,0,0,0,255,0,0,0]
+		# ])
+		# start_of_image = [0,0]
+	B = np.array([
+		[1,1,1],
+		[1,1,1],
+		[1,1,1]
+	])
+	B_start = [1,1]
+
+	B_set = getSet(B, B_start)
+	B_reflected = reflection(B_set)
+
+	opening_erode = erode(bimage1, B_set)
+	opening = dilate(opening_erode, B_reflected)
+	# print(opening)
+
+
+
 
 	f, axarr = plt.subplots(5,2)
 	axarr[0,0].imshow(bimage1, cmap = 'gray')
@@ -376,5 +426,5 @@ if __name__ == '__main__':
 	axarr[3,0].imshow(breflection_image, cmap = 'gray')
 	axarr[3,1].imshow(bdilate_image, cmap = 'gray')
 	axarr[4,0].imshow(berode_image, cmap = 'gray')
-	axarr[4,1].imshow(bimage2, cmap = 'gray')
+	axarr[4,1].imshow(opening, cmap = 'gray')
 	plt.show()
