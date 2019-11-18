@@ -28,21 +28,6 @@ def validateSize(image1, image2):
 		return False;
 	return True;
 
-def thresholding(image, T):   
-    arr = image.copy()
-    height = image.shape[0]
-    width = image.shape[1]
-    channels = 1
-    
-    for i in range(height):
-        for j in range(width):          
-            if( arr[i,j] < T):
-                arr[i,j] = 0
-            else:
-                arr[i,j] = 255
-       
-    return arr
-
 def putSaltNoise(image, percent):
 	height = image.shape[0]
 	width = image.shape[1]
@@ -68,23 +53,6 @@ def putPepperNoise(image, percent):
 		y = random.randint(0, width-1)
 		rtn[x, y] = int(0)
 	return rtn
-
-
-# def computeReflection(original, mapreflected, start):
-# 	height = original.shape[0]
-# 	width = original.shape[1]
-# 	offset_h = height - start[0] - 1
-# 	offset_w = width - start[1] - 1
-
-# 	rtn = np.zeros((height, width), dtype=np.uint8)
-
-# 	for key in mapreflected:
-# 		values = key.split(",")
-# 		h = int(values[0])
-# 		w = int(values[1])
-# 		rtn[h+offset_h, w+offset_w] = mapreflected[key]
-
-# 	return rtn
 
 def union(image1, image2):
 	height = image1.shape[0]
@@ -133,6 +101,17 @@ def reflection(image, start):
 
 	return rtn
 
+def getmap(image, start):
+	offset_h = start[0]
+	offset_w = start[1]
+	rtn = {}
+
+	for index in np.ndindex(image.shape):
+		string = str(index[0] - offset_h)+","+str(index[1] - offset_w)
+		rtn[string] = image[index]
+
+	return rtn
+
 def translation(image, start, b):
 	offset_h = start[0]
 	offset_w = start[1]
@@ -165,9 +144,6 @@ def dilate(image, mask):
 	rtn = np.zeros((height, width), dtype=np.uint8)
 
 	pimage = prepareForDilate(image)
-	print(mask)
-
-	# DEBO DE RECORRER LAS COORDENADAS EN LUGAR DE LOS INDICES DE LA MÁSCARA 
 
 	for i in range(height):
 		for j in range(width):
@@ -187,82 +163,188 @@ def dilate(image, mask):
 				# print("----------")
 				# print("value = pimage["+str(i+h)+","+str(j+w)+"] + mask["+key+"]")
 				
-				value = pimage[new_i+h, new_j+w] + mask[key]
+				value = int(pimage[new_i+h, new_j+w]) + int(mask[key])
 				value = max(prev, value)
+				if(value > 255):
+					value = 255
 
+			rtn[i,j] = value
+
+	return rtn
+
+
+def prepareForErode(image):
+	height = image.shape[0]
+	width = image.shape[1]
+
+	rtn = np.full((height+2, width+2), 255, dtype=np.uint8)
+
+	for i in range(height):
+		for j in range(width):
+			rtn[i+1,j+1] = image[i,j]
+
+	return rtn
+
+def erode(image, mask):
+	height = image.shape[0]
+	width = image.shape[1]
+	
+	rtn = np.zeros((height, width), dtype=np.uint8)
+
+	pimage = prepareForErode(image)
+
+	for i in range(height):
+		for j in range(width):
+			value = 255
+			new_i = i+1
+			new_j = j+1
+
+			# print(str(i)+","+str(j))
+
+			for key in mask:
+				values = key.split(",")
+				h = int(values[0])
+				w = int(values[1])
+
+				prev = value
+				# print("prev = value: "+str(prev)+" = "+str(value))
+
+				# print("----------")
+				# print("value = pimage["+str(i+h)+","+str(j+w)+"] + mask["+key+"]")
+				
+				value = int(pimage[new_i+h, new_j+w]) - int(mask[key])
+				value = min(prev, value)
+				if(value < 0):
+					value = 0
+				
 			rtn[i,j] = value
 
 	return rtn
 
 if __name__ == '__main__':
 	#-------------READING AND PREPARING IMAGES-------------#
-	# grayscale_image1_name = "./grayscale/a_g.jpg"
-	# grayscale_image2_name = "./grayscale/b_g.jpg"
+	grayscale_image1_name = "./grayscale/a_g.jpg"
+	grayscale_image2_name = "./grayscale/b_g.jpg"
 	
-	# grayscale_image1 = Image.open(grayscale_image1_name)
-	# grayscale_image2 = Image.open(grayscale_image2_name)
+	grayscale_image1 = Image.open(grayscale_image1_name)
+	grayscale_image2 = Image.open(grayscale_image2_name)
 
-	# grayscale_image1_array = np.asarray(grayscale_image1)
-	# grayscale_image2_array = np.asarray(grayscale_image2)
+	grayscale_image1_array = np.asarray(grayscale_image1)
+	grayscale_image2_array = np.asarray(grayscale_image2)
 
-	# if(validateSize(grayscale_image1_array, grayscale_image2_array) != True):
-	# 	sys.exit("Images are different size "+str(grayscale_image1_array.shape)+" vs "+str(grayscale_image2_array.shape))
+	if(validateSize(grayscale_image1_array, grayscale_image2_array) != True):
+		sys.exit("Images are different size "+str(grayscale_image1_array.shape)+" vs "+str(grayscale_image2_array.shape))
 
-	# image1 = colorToGrayscale(grayscale_image1_array)
-	# image2 = colorToGrayscale(grayscale_image2_array)
+	image1 = colorToGrayscale(grayscale_image1_array)
+	image2 = colorToGrayscale(grayscale_image2_array)
 
-	# image1 = putPepperNoise(image1, 10)
-	# image2 = putSaltNoise(image2, 10)
+	image1 = putPepperNoise(image1, 10)
+	show(image1)
+	image2 = putSaltNoise(image2, 10)
+	show(image2)
 	#-------------END OF READING AND PREPARING IMAGES-------------#
 
+
+	# UNION
 
 	# gunion = union(image1, image2)
 	# show(gunion)
 
+
+	# INTERSECTION
+
 	# gintersection = intersection(image1, image2)
 	# show(gintersection)
+
+
+	# COMPLEMENT
 
 	# gcomplement = complement(image1)
 	# show(gcomplement)
 
+	# MÁSCARA PARA ERODE Y DILATE
 	a = np.array([
 			[5,5,5]
 		], dtype=np.uint8)
 	start = [0,1]
 
-	mapreflected = reflection(a, start)
-	# print(mapreflected)
 
-	# greflected = computeReflection(a, mapreflected, start)
-	# print(greflected)
+	# REFLECTION
+
+	amap_reflected = reflection(a, start)
+	# retornar la máscara como un mapa
+	amap = getmap(a, start)
+
+	# print(amap)
+	# print(amap_reflected)
+
+
+	# TRANSLATION
 
 	# b = [2,1]
 	# gtraslated = translation(a, start, b)
 	# print(gtraslated)
 
 
-	image = np.array([
-			[ 0, 0, 0, 0, 0],
-			[ 0,10,10,10, 0],
-			[ 0,10, 0,10, 0],
-			[ 0,10,10,10, 0],
-			[ 0, 0, 0, 0, 0]
-		], dtype=np.uint8)
+	# DILATE
 
-	gdilate = dilate(image, mapreflected)
-	print(gdilate)
+	# gdilate = dilate(image1, amap_reflected)
+	# show(gdilate)
 
 
+	# ERODE
+
+	# gerode = erode(image1, amap)
+	# show(gerode)
+
+
+	# OPENING 
+
+	print("Calculating opening...")
+	o_erode = erode(image2, amap)
+	o = dilate(o_erode, amap_reflected)
+
+
+	# CLOSING
+
+	print("Calculating closing...")
+	c_dilate = dilate(image1, amap_reflected)
+	c = erode(c_dilate, amap)
+	show(c)
+
+
+	# TEST OPENING
+
+	# image = np.array([
+	# 		[ 0, 0, 0, 0, 0],
+	# 		[ 0,10,10,10, 0],
+	# 		[ 0,10,20,10, 0],
+	# 		[ 0,10,10,10, 0],
+	# 		[ 0, 0, 0, 0, 0]
+	# 	], dtype=np.uint8)
+
+	# TEST OPENING
+
+	# image = np.array([
+	# 		[ 0, 0, 0, 0, 0],
+	# 		[ 0,10,10,10, 0],
+	# 		[ 0,10, 0,10, 0],
+	# 		[ 0,10,10,10, 0],
+	# 		[ 0, 0, 0, 0, 0]
+	# 	], dtype=np.uint8)
+
+
+	# print("Printing images")
 	#------------PRINTING IMAGES------------------#
 	# f, axarr = plt.subplots(5,2, figsize=(20,20), sharey=True)
 	# axarr[0,0].imshow(image1, cmap = 'gray')
 	# axarr[0,1].imshow(image2, cmap = 'gray')
 	# axarr[1,0].imshow(gunion, cmap = 'gray')
-	# # axarr[1,1].imshow(image1, cmap = 'gray')
-	# # axarr[2,0].imshow(image1, cmap = 'gray')
-	# # axarr[2,1].imshow(image1, cmap = 'gray')
-	# # axarr[3,0].imshow(image1, cmap = 'gray')
-	# # axarr[3,1].imshow(image1, cmap = 'gray')
+	# axarr[1,1].imshow(gintersection, cmap = 'gray')
+	# axarr[2,0].imshow(gcomplement, cmap = 'gray')
+	# axarr[2,1].imshow(gerode, cmap = 'gray')
+	# axarr[3,0].imshow(gdilate, cmap = 'gray')
+	# axarr[3,1].imshow(image1, cmap = 'gray')
 	# # axarr[4,0].imshow(image1, cmap = 'gray')
 	# # axarr[4,1].imshow(image1, cmap = 'gray')
 	# plt.show()
