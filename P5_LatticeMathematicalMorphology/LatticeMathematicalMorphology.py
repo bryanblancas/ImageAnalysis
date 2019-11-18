@@ -133,7 +133,7 @@ def reflection(image, start):
 
 	return rtn
 
-def traslation(image, start, b):
+def translation(image, start, b):
 	offset_h = start[0]
 	offset_w = start[1]
 	h = b[0]
@@ -237,7 +237,7 @@ if __name__ == '__main__':
 	# print(greflected)
 
 	# b = [2,1]
-	# gtraslated = traslation(a, start, b)
+	# gtraslated = translation(a, start, b)
 	# print(gtraslated)
 
 
